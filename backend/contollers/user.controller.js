@@ -63,7 +63,7 @@ export const  followUnfollowUser =  async (req,res)=>{
 
             // TODO :
             // RETURN USERID ON SUCCESS
-            res.status(200).json({message:"Followed successfully"});
+            res.status(201).json({message:"Followed successfully"});
         }
     } catch (error) {
         console.log("Error in following/unfollowing user: ", error.message);
@@ -167,7 +167,7 @@ export const updateUser = async (req,res) => {
 
         user.password = null;
 
-        return res.status(200).json(user);
+        return res.status(201).json(user);
         
     } catch (error) {
         console.log("Error in suggest user: ", error.message);
