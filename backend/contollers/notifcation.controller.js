@@ -42,20 +42,20 @@ export const deleteNotification = async (req,res) => {
         const notification = await Notification.findById(notificationId);
 
         if(!notification){
-            res.status(400).json({
+            return res.status(400).json({
                 error: "Notification not found"
             });
         }
 
         if(notification.from.toString() !== userId.toString()){
-            res.status(400).json({
+            return res.status(400).json({
                 error: "You are not authorized to delete this notification"
             });
         }
 
         await Notification.findByIdAndDelete(notificationId);
         
-        res.status(200).json({message: "Notification deleted successfully"});
+        return res.status(200).json({message: "Notification deleted successfully"});
 
     } catch (error) {
         console.log("Error in deleteNotification", error.message);

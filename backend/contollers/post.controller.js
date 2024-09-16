@@ -31,7 +31,7 @@ export const getAllLikedPosts = async(req,res) =>{
         const user = await User.findById(userId);
 
         if(!user){
-            res.status(400).json({error: "User not found"});
+            return res.status(400).json({error: "User not found"});
         }
         
         const posts = await Post.find({_id: {$in: user.likedPosts}})
@@ -60,7 +60,7 @@ export const getFollowerPosts = async(req,res) =>{
         const user = await User.findById(userId);
 
         if(!user){
-            res.status(400).json({error: "User not found"});
+            return res.status(400).json({error: "User not found"});
         }
         const posts = await Post.find({user: {$in: user.following}})
         .sort({createdAt : -1})
@@ -86,7 +86,7 @@ export const getUserPosts = async(req,res) =>{
 
         const user = await User.findOne({username});
         if(!user){
-            res.status(400).json({error: "User not found"});
+            return res.status(400).json({error: "User not found"});
         }        
 
         const posts = await Post.find({user: user._id})
@@ -118,13 +118,13 @@ export const createPost = async (req,res) =>{
         const user = await User.findById(userId).select("-password");
 
         if(!user){
-            res.status(400).json({
+            return res.status(400).json({
                 error: "User not Found"
             });
         }
 
         if(!text || !text.length){
-            res.status(400).json({
+            return res.status(400).json({
                 error: "Post text content cannot be empty"
             });
         }
@@ -160,7 +160,7 @@ export const likeUnlikePost = async(req,res) =>{
         const post = await Post.findById(postId);
 
         if(!post){
-            res.status(400).json({
+            return res.status(400).json({
                 error: "Post Not Found"
             });
         }
@@ -170,7 +170,7 @@ export const likeUnlikePost = async(req,res) =>{
         if(userLikedPost){
             await Post.updateOne({_id:postId},{$pull: {likes: userId}});
             await User.updateOne({_id:userId},{$pull: {likedPosts: postId}});
-            res.status(200).json({
+            return res.status(200).json({
                 message:"Post unLiked"
             })
         }
@@ -206,13 +206,13 @@ export const commentOnPost = async (req,res) => {
         const post = await Post.findById(postId);
 
         if(!post){
-            res.status(400).json({
+            return res.status(400).json({
                 error: "Post Not Found"
             });
         }
 
         if(!text||!text.length){
-            res.status(400).json({
+            return res.status(400).json({
                 error: "Comment Cannot be Empty"
             });
         }
@@ -243,13 +243,13 @@ export const deletePost = async (req,res) =>{
         const post = await Post.findById(postId);
 
         if(!post){
-            res.status(400).json({
+            return res.status(400).json({
                 error: "Post Not Found"
             });
         }
 
         if(post.user.toString() !== req.user._id.toString()){
-            res.status(400).json({
+            return res.status(400).json({
                 error: "Posts can only be deleted by the creator of the post"
             });
         }
