@@ -61,8 +61,6 @@ export const  followUnfollowUser =  async (req,res)=>{
 
             await newNotification.save();
 
-            // TODO :
-            // RETURN USERID ON SUCCESS
             res.status(201).json({message:"Followed successfully"});
         }
     } catch (error) {
