@@ -8,12 +8,20 @@ import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import LoadingSpinner from "./LoadingSpinner";
+import { formatPostDate } from "../../utils/db/date";
 
 const Post = ({ post }) => {
 	const [comment, setComment] = useState("");
 
 	const {data:authUser} = useQuery({queryKey:["authUser"]});
 	const queryClient = useQueryClient();
+
+	const postOwner = post.user;
+	const isLiked = post.likes.includes(authUser.user._id);
+
+	const isMyPost = authUser.user._id === post.user._id;
+
+	const formattedDate = formatPostDate(post.createdAt);
 
 	const {mutate:deleteMutation,isPending:isDeleting} = useMutation({
 		mutationFn: async ()=>{
@@ -76,17 +84,47 @@ const Post = ({ post }) => {
 		onError:()=>{
 			toast.error(error.message);
 		}
+	});
+
+	const {mutate:commentMutation, isPending:isCommenting} = useMutation({
+		mutationFn: async()=>{
+			try {
+				const res = await fetch(`/api/post/comment/${post._id}`,{
+					method:"POST",
+					headers:{
+						"Content-Type":"application/json",
+					},
+					body: JSON.stringify({text:comment}),
+				});
+	
+				const data = await res.json();
+	
+				if(data.error || !res.ok){
+					throw new Error(data.error || "Cannot Like Post");
+				}
+	
+				return data;
+				
+			} catch (error) {
+				throw new Error(error);
+			}
+		},
+		onSuccess:(updatedComments)=>{
+			toast.success("Comment added Successfully!");
+			setComment("");
+			queryClient.setQueryData(["Posts"],(oldData)=>{
+				return oldData.map((p)=>{
+					if(p._id === post._id){
+						p.comments = updatedComments;
+					}
+					return p;
+				});
+			});
+		},
+		onError:()=>{
+			toast.error(error.message);
+		}
 	})
-
-
-	const postOwner = post.user;
-	const isLiked = post.likes.includes(authUser.user._id);
-
-	const isMyPost = authUser.user._id === post.user._id;
-
-	const formattedDate = "1h";
-
-	const isCommenting = false;
 
 	const handleDeletePost = () => {
 		deleteMutation();
@@ -94,6 +132,8 @@ const Post = ({ post }) => {
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
+		if(isCommenting || !comment || comment==undefined || !comment.length) return;
+		commentMutation();
 	};
 
 	const handleLikePost = () => {
