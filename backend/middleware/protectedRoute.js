@@ -25,11 +25,11 @@ export const protectedRoute = async (req,res,next) =>{
             return res.status(401).json({
                 error:"User not found. You have to login!!"
             });
-        }
-        
-        console.log("h1");
+        }        
+
         req.user = user;
         next();
+        
     } catch (error) {
         console.log("Error in protectedRoute middleware", error.message);
         return res.status(500).json({

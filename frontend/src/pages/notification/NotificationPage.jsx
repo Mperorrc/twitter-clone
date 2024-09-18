@@ -1,36 +1,63 @@
 import { Link } from "react-router-dom";
 import LoadingSpinner from "../../components/common/LoadingSpinner";
 
+import { QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import { IoSettingsOutline } from "react-icons/io5";
 import { FaUser } from "react-icons/fa";
 import { FaHeart } from "react-icons/fa6";
+import toast from "react-hot-toast";
 
 const NotificationPage = () => {
-	const isLoading = false;
-	const notifications = [
-		{
-			_id: "1",
-			from: {
-				_id: "1",
-				username: "johndoe",
-				profileImg: "/avatars/boy2.png",
-			},
-			type: "follow",
-		},
-		{
-			_id: "2",
-			from: {
-				_id: "2",
-				username: "janedoe",
-				profileImg: "/avatars/girl1.png",
-			},
-			type: "like",
-		},
-	];
 
-	const deleteNotifications = () => {
-		alert("All notifications deleted");
-	};
+	const {data:notifications,isLoading} = useQuery({
+		queryKey:["notification"],
+		queryFn: async()=>{
+			try {
+				const res = await fetch(`/api/notification`);
+				
+				const data = await res.json();
+				
+				if(data.error || !res.ok){
+					throw new Error(data.error || "Couldn't get Notifications");
+				}
+				
+				return data;
+				
+			} catch (error) {
+				throw new Error(error);
+			}	
+		}
+	});
+	const queryClient = useQueryClient();
+
+	const {mutate:deleteMutation, isPending:isDeleting} = useMutation({
+		mutationFn: async()=>{
+			try {
+				const res = await fetch(`/api/notification`,{
+					method:"DELETE",
+				});
+
+				const data = await res.json();
+
+				if(data.error || !res.ok){
+					throw new Error(data.error || "Couldn't get Notifications");
+				}
+
+				return data;
+
+			} catch (error) {
+				throw new Error(error);
+			}	
+		},
+		onSuccess:()=>{
+			toast.success("Notification deleted successfully");
+			queryClient.invalidateQueries({queryKey:["notification"]})
+		},
+		onError:()=>{
+			toast.error("Couldn't delete notifications");
+		}
+	});
 
 	return (
 		<>
@@ -46,7 +73,7 @@ const NotificationPage = () => {
 							className='dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52'
 						>
 							<li>
-								<a onClick={deleteNotifications}>Delete all notifications</a>
+								<a onClick={deleteMutation}>Delete all notifications</a>
 							</li>
 						</ul>
 					</div>
